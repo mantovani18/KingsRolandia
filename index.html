@@ -1,0 +1,1280 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerenciador de Campeonato KINGS RL</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;900&display=swap" rel="stylesheet">
+    <style>
+        /* CSS Reset e Configurações Globais */
+        :root {
+            --primary-blue: #0d1b2a;
+            --secondary-blue: #1b263b;
+            --card-background: #122138;
+            --gold-color: #fca311; /* Cor de destaque mais vibrante */
+            --light-text: #e0e1dd;
+            --grey-text: #adb5bd;
+            --border-color: #2a3a52;
+            --success-color: #2a9d8f;
+            --danger-color: #e76f51;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: var(--primary-blue);
+            color: var(--light-text);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* Cabeçalho */
+        header {
+            background-color: var(--secondary-blue);
+            padding: 15px 0;
+            border-bottom: 4px solid var(--gold-color);
+            margin-bottom: 30px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .header-content {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .header-title {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .main-logo {
+            max-width: 80px;
+        }
+
+        header h1 {
+            font-size: 2rem;
+            font-weight: 900;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        /* Layout Principal */
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 30px;
+        }
+
+        /* Seções de Conteúdo */
+        .content-section h2 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--gold-color);
+            margin-bottom: 20px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-left: 4px solid var(--gold-color);
+            padding-left: 10px;
+        }
+
+        /* Tabela de Classificação */
+        .table-container {
+            background-color: var(--secondary-blue);
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 12px 10px;
+            text-align: center;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        thead {
+            background-color: var(--card-background);
+            color: var(--grey-text);
+            font-size: 0.75rem;
+            text-transform: uppercase;
+        }
+
+        tbody tr:last-child td {
+            border-bottom: none;
+        }
+        
+        tbody tr {
+            transition: background-color 0.2s ease;
+        }
+
+        tbody tr:hover {
+            background-color: var(--border-color);
+        }
+
+        td .team-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 500;
+        }
+
+        .team-logo {
+            width: 28px;
+            height: 28px;
+            object-fit: contain;
+        }
+        
+        .team-col {
+            text-align: left;
+            width: 40%;
+        }
+
+        /* Rodadas e Partidas */
+        .round-container {
+            margin-bottom: 30px;
+        }
+
+        .round-title {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: var(--light-text);
+            margin-bottom: 15px;
+        }
+        
+        .matches-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 15px;
+        }
+
+        .match-card {
+            background-color: var(--secondary-blue);
+            border-radius: 8px;
+            padding: 15px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            border: 1px solid var(--border-color);
+        }
+        
+        .match-card.played {
+            background-color: var(--card-background);
+        }
+
+        .match-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+        }
+        
+        .match-card-body {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .match-team {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            width: 40%;
+            font-size: 1rem;
+            font-weight: 700;
+        }
+        
+        .match-team.away {
+            justify-content: flex-end;
+            flex-direction: row-reverse;
+        }
+
+        .match-score {
+            font-size: 1.8rem;
+            font-weight: 900;
+        }
+        
+        .match-status {
+            text-align: center;
+            font-size: 0.8rem;
+            color: var(--grey-text);
+            margin-top: 10px;
+        }
+        
+        .final-card {
+            border: 2px solid var(--gold-color);
+        }
+        
+        .final-card .round-title {
+            color: var(--gold-color);
+        }
+
+        /* Estatísticas */
+        .stats-list {
+            list-style: none;
+            background-color: var(--secondary-blue);
+            padding: 15px;
+            border-radius: 8px;
+        }
+        
+        .stats-list li {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .stats-list li:last-child {
+            border-bottom: none;
+        }
+        
+        .scorer-info {
+            font-weight: 500;
+        }
+        
+        .scorer-team {
+            font-size: 0.8rem;
+            color: var(--grey-text);
+            margin-left: 5px;
+        }
+
+        .scorer-goals {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--gold-color);
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.7);
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .modal-content {
+            background-color: var(--secondary-blue);
+            margin: auto;
+            padding: 25px;
+            border: 1px solid var(--border-color);
+            width: 90%;
+            max-width: 800px;
+            border-radius: 10px;
+            box-shadow: 0 5px 25px rgba(0, 0, 0, 0.5);
+            animation: slide-down 0.3s ease-out;
+            max-height: 90vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .modal-body {
+            overflow-y: auto;
+        }
+        
+        @keyframes slide-down {
+            from {
+                transform: translateY(-30px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 15px;
+            margin-bottom: 20px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .modal-header h3 {
+            font-size: 1.5rem;
+            color: var(--gold-color);
+        }
+
+        .close-btn {
+            color: var(--grey-text);
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+
+        .close-btn:hover {
+            color: var(--light-text);
+        }
+
+        /* Formulários */
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+        
+        input[type="text"], input[type="number"], select {
+            width: 100%;
+            padding: 10px;
+            background-color: var(--primary-blue);
+            border: 1px solid var(--border-color);
+            border-radius: 5px;
+            color: var(--light-text);
+            font-size: 1rem;
+        }
+        
+        textarea {
+            width: 100%;
+            padding: 10px;
+            background-color: var(--primary-blue);
+            border: 1px solid var(--border-color);
+            border-radius: 5px;
+            color: var(--light-text);
+            font-size: 1rem;
+            min-height: 80px;
+            resize: vertical;
+        }
+        
+        .score-input-group {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .score-input-group span {
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+        
+        .score-input-group input {
+            width: 80px;
+            text-align: center;
+            font-size: 1.8rem;
+            font-weight: 700;
+        }
+        
+        .events-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        
+        .event-list {
+            list-style: none;
+            margin-top: 10px;
+            max-height: 150px;
+            overflow-y: auto;
+            padding: 5px;
+            background: var(--primary-blue);
+            border-radius: 5px;
+        }
+        
+        .event-list li {
+            padding: 5px;
+            font-size: 0.9rem;
+        }
+
+        .icon-yellow-card { color: #ffd60a; }
+        .icon-red-card { color: #d00000; }
+
+        /* Modal de Gerenciamento */
+        .management-tabs {
+            display: flex;
+            border-bottom: 1px solid var(--border-color);
+            margin-bottom: 20px;
+        }
+        .tab-button {
+            padding: 10px 20px;
+            cursor: pointer;
+            background: none;
+            border: none;
+            color: var(--grey-text);
+            font-size: 1rem;
+            font-weight: 500;
+        }
+        .tab-button.active {
+            color: var(--gold-color);
+            border-bottom: 2px solid var(--gold-color);
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .player-list, .match-list { list-style: none; }
+        .player-list li, .match-list li {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px;
+            background: var(--primary-blue);
+            border-radius: 4px;
+            margin-bottom: 5px;
+        }
+        .inline-form { display: flex; gap: 10px; margin-top: 10px; }
+        .inline-form input { flex-grow: 1; }
+        .round-management-item {
+            padding: 15px;
+            background: var(--card-background);
+            border-radius: 5px;
+            margin-bottom: 15px;
+        }
+
+        /* Botões */
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            transition: background-color 0.2s, transform 0.1s;
+        }
+        
+        .btn-primary {
+            background-color: var(--gold-color);
+            color: var(--primary-blue);
+        }
+        
+        .btn-primary:hover {
+            background-color: #ffb703;
+        }
+        
+        .btn-secondary {
+            background-color: var(--border-color);
+            color: var(--light-text);
+        }
+
+        .btn-danger {
+            background-color: var(--danger-color);
+            color: var(--light-text);
+        }
+        
+        .btn-sm {
+            padding: 5px 10px;
+            font-size: 0.8rem;
+        }
+
+        .btn-success {
+            background-color: var(--success-color);
+            color: var(--light-text);
+        }
+
+        .btn:active {
+            transform: scale(0.98);
+        }
+        
+        .btn:disabled {
+            background-color: var(--grey-text);
+            cursor: not-allowed;
+        }
+
+        .modal-footer {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border-color);
+            text-align: right;
+            flex-shrink: 0;
+        }
+
+        /* Responsividade */
+        @media (min-width: 1024px) {
+            .main-content {
+                grid-template-columns: 2fr 1fr; /* 2 colunas para conteúdo, 1 para stats */
+            }
+        }
+
+        @media (max-width: 768px) {
+            header h1 { font-size: 1.5rem; }
+            .main-logo { max-width: 60px; }
+            .events-section { grid-template-columns: 1fr; }
+            .modal-content { width: 95%; max-width: 95%; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Cabeçalho -->
+    <header>
+        <div class="container header-content">
+            <div class="header-title">
+                <img src="logo.jpg" alt="Logo KINGS RL" class="main-logo">
+                <h1>KINGS RL</h1>
+            </div>
+            <div class="header-actions">
+                <button id="management-btn" class="btn btn-secondary">Gerenciar</button>
+                <button id="reset-championship-btn" class="btn btn-danger">Resetar</button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Conteúdo Principal -->
+    <main class="container">
+        <div id="app-container" style="display: none;">
+            <div class="main-content">
+                <!-- Coluna Principal (Tabela e Rodadas) -->
+                <div class="main-column">
+                    <section class="content-section" id="standings-section">
+                        <h2>Classificação</h2>
+                        <div class="table-container">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>#</th>
+                                        <th class="team-col">Equipe</th>
+                                        <th>P</th>
+                                        <th>J</th>
+                                        <th>V</th>
+                                        <th>E</th>
+                                        <th>D</th>
+                                        <th>GP</th>
+                                        <th>GC</th>
+                                        <th>SG</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="standings-table-body"></tbody>
+                            </table>
+                        </div>
+                    </section>
+                    
+                    <section class="content-section" id="finals-section" style="display: none;">
+                        <h2>Finais</h2>
+                        <div id="finals-container"></div>
+                    </section>
+
+                    <section class="content-section" id="schedule-section">
+                        <h2>Fase de Grupos</h2>
+                        <div id="schedule-container"></div>
+                    </section>
+                </div>
+                <!-- Coluna Lateral (Estatísticas) -->
+                <aside class="sidebar-column">
+                    <section class="content-section" id="stats-section">
+                        <h2>Artilheiros</h2>
+                        <ul id="top-scorers-list" class="stats-list"></ul>
+                    </section>
+                    <section class="content-section" id="cards-section">
+                        <h2>Cartões Amarelos</h2>
+                        <ul id="yellow-cards-list" class="stats-list"></ul>
+                    </section>
+                </aside>
+            </div>
+        </div>
+    </main>
+
+    <!-- Modal de Configuração Inicial -->
+    <div id="setup-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header"><h3>Configuração do Campeonato</h3></div>
+            <div class="modal-body">
+                <p>Bem-vindo! Insira os nomes dos times e dos jogadores para iniciar. (Mínimo 4 times).</p>
+                <div class="form-group">
+                    <label for="teams-input">Times e Jogadores</label>
+                    <textarea id="teams-input" rows="10" placeholder="Use estes nomes para as logos aparecerem:
+FC REVOLUTION: Jogador1, Jogador2, Jogador3
+LOS ALIENS: JogadorA, JogadorB, JogadorC
+HYDRA RFC: PlayerX, PlayerY, PlayerZ
+LOS GALÁCTICOS: Atleta1, Atleta2, Atleta3"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="start-championship-btn" class="btn btn-primary">Iniciar Campeonato</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal de Edição de Partida -->
+    <div id="match-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="match-modal-title">Editar Resultado</h3>
+                <span class="close-btn">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="score-input-group">
+                    <span id="home-team-name-modal">Time Casa</span>
+                    <input type="number" id="home-score-input" min="0">
+                    <span>X</span>
+                    <input type="number" id="away-score-input" min="0">
+                    <span id="away-team-name-modal">Time Fora</span>
+                </div>
+                <hr style="border-color: var(--border-color); margin: 20px 0;">
+                <div class="events-section">
+                    <div>
+                        <label>Eventos - <span id="home-team-event-label"></span></label>
+                        <div class="form-group">
+                             <select id="home-player-select"></select>
+                             <button class="btn btn-success btn-sm" data-event-type="goal" data-team-type="home">Gol</button>
+                             <button class="btn btn-sm" style="background-color: #ffd60a; color: black" data-event-type="yellow" data-team-type="home">C. Amarelo</button>
+                             <button class="btn btn-danger btn-sm" data-event-type="red" data-team-type="home">C. Vermelho</button>
+                        </div>
+                        <ul class="event-list" id="home-events-list"></ul>
+                    </div>
+                    <div>
+                        <label>Eventos - <span id="away-team-event-label"></span></label>
+                        <div class="form-group">
+                             <select id="away-player-select"></select>
+                             <button class="btn btn-success btn-sm" data-event-type="goal" data-team-type="away">Gol</button>
+                             <button class="btn btn-sm" style="background-color: #ffd60a; color: black" data-event-type="yellow" data-team-type="away">C. Amarelo</button>
+                             <button class="btn btn-danger btn-sm" data-event-type="red" data-team-type="away">C. Vermelho</button>
+                        </div>
+                        <ul class="event-list" id="away-events-list"></ul>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="save-match-btn" class="btn btn-primary">Salvar Resultado</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Gerenciamento -->
+    <div id="management-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Gerenciar Campeonato</h3>
+                <span class="close-btn">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="management-tabs">
+                    <button class="tab-button active" data-tab="teams">Times e Jogadores</button>
+                    <button class="tab-button" data-tab="rounds">Rodadas</button>
+                    <button class="tab-button" data-tab="finals">Finais</button>
+                </div>
+
+                <!-- Tab: Times e Jogadores -->
+                <div id="tab-teams" class="tab-content active"></div>
+
+                <!-- Tab: Rodadas -->
+                <div id="tab-rounds" class="tab-content"></div>
+
+                <!-- Tab: Finais -->
+                <div id="tab-finals" class="tab-content">
+                    <h4>Gerar Partidas Finais</h4>
+                    <p>As finais (Ouro e Prata) são geradas com base na classificação final da fase de grupos (1ºx2º e 3ºx4º). Todos os jogos da fase de grupos devem ser concluídos.</p>
+                    <br>
+                    <button id="generate-finals-btn" class="btn btn-primary">Gerar Finais</button>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary close-btn">Fechar</button>
+            </div>
+        </div>
+    </div>
+
+
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const App = {
+            state: {
+                teams: [],
+                schedule: [],
+                finals: { gold: null, silver: null },
+                settings: { setupComplete: false },
+                currentEditingMatchOriginal: null // Para corrigir bug de estatísticas
+            },
+            
+            elements: {
+                appContainer: document.getElementById('app-container'),
+                // Modais
+                setupModal: document.getElementById('setup-modal'),
+                matchModal: document.getElementById('match-modal'),
+                managementModal: document.getElementById('management-modal'),
+                // Botões
+                startChampionshipBtn: document.getElementById('start-championship-btn'),
+                resetBtn: document.getElementById('reset-championship-btn'),
+                managementBtn: document.getElementById('management-btn'),
+                generateFinalsBtn: document.getElementById('generate-finals-btn'),
+                // Containers
+                standingsBody: document.getElementById('standings-table-body'),
+                scheduleContainer: document.getElementById('schedule-container'),
+                topScorersList: document.getElementById('top-scorers-list'),
+                yellowCardsList: document.getElementById('yellow-cards-list'),
+                finalsSection: document.getElementById('finals-section'),
+                finalsContainer: document.getElementById('finals-container'),
+                // Inputs e Seletores
+                teamsInput: document.getElementById('teams-input'),
+                // Elementos do Modal de Partida
+                matchModalCloseBtn: document.querySelector('#match-modal .close-btn'),
+                saveMatchBtn: document.getElementById('save-match-btn'),
+                homeScoreInput: document.getElementById('home-score-input'),
+                awayScoreInput: document.getElementById('away-score-input'),
+                homePlayerSelect: document.getElementById('home-player-select'),
+                awayPlayerSelect: document.getElementById('away-player-select'),
+                homeEventsList: document.getElementById('home-events-list'),
+                awayEventsList: document.getElementById('away-events-list'),
+                // Elementos do Modal de Gerenciamento
+                managementModalCloseBtns: document.querySelectorAll('#management-modal .close-btn'),
+                managementTabs: document.querySelector('.management-tabs'),
+            },
+
+            init() {
+                this.loadState();
+                this.attachEventListeners();
+
+                if (this.state.settings.setupComplete) {
+                    this.elements.appContainer.style.display = 'block';
+                    this.render();
+                } else {
+                    this.elements.setupModal.style.display = 'flex';
+                }
+            },
+
+            loadState() {
+                const savedState = localStorage.getItem('kingsRLChampionship');
+                if (savedState) {
+                    this.state = JSON.parse(savedState);
+                }
+            },
+
+            saveState() {
+                localStorage.setItem('kingsRLChampionship', JSON.stringify(this.state));
+            },
+
+            attachEventListeners() {
+                // Configuração e Reset
+                this.elements.startChampionshipBtn.addEventListener('click', () => this.setupChampionship());
+                this.elements.resetBtn.addEventListener('click', () => this.resetChampionship());
+                
+                // Modais
+                this.elements.managementBtn.addEventListener('click', () => this.openManagementModal());
+                this.elements.managementModalCloseBtns.forEach(btn => btn.addEventListener('click', () => this.closeManagementModal()));
+                this.elements.matchModalCloseBtn.addEventListener('click', () => this.closeMatchModal());
+
+                // Ações de Partida
+                this.elements.scheduleContainer.addEventListener('click', (e) => this.handleMatchClick(e));
+                this.elements.finalsContainer.addEventListener('click', (e) => this.handleMatchClick(e));
+                this.elements.saveMatchBtn.addEventListener('click', () => this.saveMatchResult());
+                this.elements.matchModal.addEventListener('click', (e) => {
+                    if (e.target.tagName === 'BUTTON' && e.target.dataset.eventType) {
+                        this.addMatchEvent(e.target.dataset.teamType, e.target.dataset.eventType);
+                    }
+                    if (e.target.classList.contains('remove-event-btn')) {
+                        this.removeMatchEvent(e.target.dataset.eventId);
+                    }
+                });
+
+                // Ações de Gerenciamento
+                this.elements.managementTabs.addEventListener('click', (e) => this.handleTabClick(e));
+                document.getElementById('tab-teams').addEventListener('click', (e) => this.handleTeamManagementActions(e));
+                document.getElementById('tab-rounds').addEventListener('click', (e) => this.handleRoundManagementActions(e));
+                this.elements.generateFinalsBtn.addEventListener('click', () => this.generateFinals());
+            },
+
+            setupChampionship() {
+                const input = this.elements.teamsInput.value.trim();
+                const lines = input.split('\n').filter(line => line.trim() !== '');
+                if (lines.length < 4) {
+                    alert('São necessários pelo menos 4 times.'); return;
+                }
+
+                const logoMap = {
+                    'fc revolution': 'https://i.ibb.co/dG6w1zL/FC-REVOLUTION-LOGO.png',
+                    'los aliens': 'https://i.ibb.co/Hdr3x1x/LOS-ALIENS-LOGO.png',
+                    'hydra rfc': 'https://i.ibb.co/fDYs2rX/HYDRA-RFC-LOGO.png',
+                    'los galácticos': 'https://i.ibb.co/d2cfw2b/LOS-GAL-CTICOS-LOGO.png',
+                };
+
+                this.state.teams = lines.map((line, index) => {
+                    const [teamName, playersStr] = line.split(':');
+                    const cleanTeamName = teamName.trim();
+                    const players = playersStr ? playersStr.split(',').map(p => p.trim()) : [];
+                    const logoUrl = logoMap[cleanTeamName.toLowerCase()] || `https://placehold.co/40x40/1b263b/e0e1dd?text=${cleanTeamName.charAt(0)}`;
+
+                    return {
+                        id: `team_${index + 1}`,
+                        name: cleanTeamName,
+                        logo: logoUrl,
+                        players: players.map(p => ({ name: p, goals: 0, yellowCards: 0, redCards: 0 }))
+                    };
+                });
+                
+                this.state.schedule = Array.from({ length: 6 }, (_, i) => ({ roundNumber: i + 1, matches: [] }));
+                
+                this.state.settings.setupComplete = true;
+                this.saveState();
+                
+                this.elements.setupModal.style.display = 'none';
+                this.elements.appContainer.style.display = 'block';
+                this.render();
+            },
+
+            resetChampionship() {
+                if (confirm('Tem certeza que deseja apagar todos os dados?')) {
+                    localStorage.removeItem('kingsRLChampionship');
+                    window.location.reload();
+                }
+            },
+            
+            render() {
+                this.renderStandings();
+                this.renderSchedule();
+                this.renderFinals();
+                this.renderTopScorers();
+                this.renderYellowCards();
+            },
+            
+            renderStandings() {
+                const standings = this.calculateStandings();
+                this.elements.standingsBody.innerHTML = standings.map((team, index) => `
+                    <tr>
+                        <td>${index + 1}</td>
+                        <td class="team-col"><div class="team-info"><img src="${team.logo}" alt="${team.name}" class="team-logo"><span>${team.name}</span></div></td>
+                        <td><strong>${team.points}</strong></td>
+                        <td>${team.played}</td><td>${team.wins}</td><td>${team.draws}</td><td>${team.losses}</td>
+                        <td>${team.goalsFor}</td><td>${team.goalsAgainst}</td><td>${team.goalDifference}</td>
+                    </tr>`).join('');
+            },
+
+            renderSchedule() {
+                this.elements.scheduleContainer.innerHTML = this.state.schedule.map(round => `
+                    <div class="round-container">
+                        <h3 class="round-title">Rodada ${round.roundNumber}</h3>
+                        ${round.matches.length > 0 ? `<div class="matches-grid">${round.matches.map(match => this.getMatchCardHTML(match)).join('')}</div>` : '<p style="color: var(--grey-text);">Partidas não definidas.</p>'}
+                    </div>`).join('');
+            },
+
+            renderFinals() {
+                const { gold, silver } = this.state.finals;
+                if (!gold && !silver) {
+                    this.elements.finalsSection.style.display = 'none';
+                    return;
+                }
+                
+                let finalsHTML = '';
+                if (silver) finalsHTML += `<div class="round-container"><h3 class="round-title">Final Prata (3º e 4º)</h3><div class="matches-grid">${this.getMatchCardHTML(silver, true)}</div></div>`;
+                if (gold) finalsHTML += `<div class="round-container"><h3 class="round-title">Final Ouro (1º e 2º)</h3><div class="matches-grid">${this.getMatchCardHTML(gold, true)}</div></div>`;
+
+                this.elements.finalsContainer.innerHTML = finalsHTML;
+                this.elements.finalsSection.style.display = 'block';
+            },
+
+            getMatchCardHTML(match, isFinal = false) {
+                const homeTeam = this.findTeamById(match.homeTeamId);
+                const awayTeam = this.findTeamById(match.awayTeamId);
+                const isPlayed = match.status === 'played';
+
+                return `
+                    <div class="match-card ${isPlayed ? 'played' : ''} ${isFinal ? 'final-card' : ''}" data-match-id="${match.id}">
+                        <div class="match-card-body">
+                            <div class="match-team"><img src="${homeTeam.logo}" class="team-logo"><span>${homeTeam.name}</span></div>
+                            <div class="match-score">${isPlayed ? `${match.homeScore} x ${match.awayScore}` : 'vs'}</div>
+                            <div class="match-team away"><img src="${awayTeam.logo}" class="team-logo"><span>${awayTeam.name}</span></div>
+                        </div>
+                        <div class="match-status">${isPlayed ? 'Finalizado' : 'Clique para inserir resultado'}</div>
+                    </div>`;
+            },
+            
+            renderTopScorers() {
+                const allPlayers = this.state.teams.flatMap(team => team.players.map(player => ({...player, teamName: team.name})));
+                const sortedScorers = allPlayers.filter(p => p.goals > 0).sort((a, b) => b.goals - a.goals).slice(0, 10);
+                if(sortedScorers.length === 0) {
+                     this.elements.topScorersList.innerHTML = '<li>Nenhum gol marcado ainda.</li>'; return;
+                }
+                this.elements.topScorersList.innerHTML = sortedScorers.map(player => `
+                    <li>
+                        <span class="scorer-info">${player.name}<span class="scorer-team">${player.teamName}</span></span>
+                        <span class="scorer-goals">${player.goals}</span>
+                    </li>`).join('');
+            },
+
+            renderYellowCards() {
+                const allYellowCardEvents = [];
+                const allMatches = [
+                    ...this.state.schedule.flatMap(r => r.matches),
+                    this.state.finals.gold,
+                    this.state.finals.silver
+                ].filter(Boolean);
+
+                allMatches.forEach(match => {
+                    match.events.forEach(event => {
+                        if (event.type === 'yellow') {
+                            const team = this.findTeamById(event.teamId);
+                            allYellowCardEvents.push({
+                                player: event.player,
+                                teamName: team.name,
+                                round: event.round
+                            });
+                        }
+                    });
+                });
+
+                const cardsByPlayer = allYellowCardEvents.reduce((acc, card) => {
+                    const key = `${card.player}-${card.teamName}`;
+                    if (!acc[key]) {
+                        acc[key] = { player: card.player, teamName: card.teamName, cards: [] };
+                    }
+                    acc[key].cards.push(card.round);
+                    return acc;
+                }, {});
+
+                const sortedPlayers = Object.values(cardsByPlayer).sort((a, b) => b.cards.length - a.cards.length);
+                
+                if (sortedPlayers.length === 0) {
+                    this.elements.yellowCardsList.innerHTML = '<li>Nenhum cartão amarelo aplicado.</li>';
+                    return;
+                }
+
+                this.elements.yellowCardsList.innerHTML = sortedPlayers.map(p => `
+                    <li>
+                        <span class="scorer-info">
+                            ${p.player}
+                            <span class="scorer-team">${p.teamName}</span>
+                        </span>
+                        <span class="scorer-goals" style="font-size: 1rem; font-weight: 500;">
+                            ${p.cards.length} (R${p.cards.map(r => r === 'Final' ? 'F' : r).join(', R')})
+                        </span>
+                    </li>
+                `).join('');
+            },
+
+            calculateStandings() {
+                const standings = this.state.teams.map(team => ({
+                    ...team, played: 0, wins: 0, draws: 0, losses: 0,
+                    goalsFor: 0, goalsAgainst: 0, goalDifference: 0, points: 0
+                }));
+                const getTeam = (id) => standings.find(t => t.id === id);
+                this.state.schedule.forEach(round => {
+                    round.matches.forEach(match => {
+                        if (match.status !== 'played') return;
+                        const homeTeam = getTeam(match.homeTeamId);
+                        const awayTeam = getTeam(match.awayTeamId);
+                        homeTeam.played++; awayTeam.played++;
+                        homeTeam.goalsFor += match.homeScore; awayTeam.goalsFor += match.awayScore;
+                        homeTeam.goalsAgainst += match.awayScore; awayTeam.goalsAgainst += match.homeScore;
+                        if (match.homeScore > match.awayScore) { homeTeam.wins++; homeTeam.points += 3; awayTeam.losses++; } 
+                        else if (match.homeScore < match.awayScore) { awayTeam.wins++; awayTeam.points += 3; homeTeam.losses++; } 
+                        else { homeTeam.draws++; homeTeam.points++; awayTeam.draws++; awayTeam.points++; }
+                    });
+                });
+                standings.forEach(team => team.goalDifference = team.goalsFor - team.goalsAgainst);
+                return standings.sort((a, b) => {
+                    if (b.points !== a.points) return b.points - a.points;
+                    if (b.goalDifference !== a.goalDifference) return b.goalDifference - a.goalDifference;
+                    if (b.goalsFor !== a.goalsFor) return b.goalsFor - a.goalsFor;
+                    return a.name.localeCompare(b.name);
+                });
+            },
+
+            handleMatchClick(e) {
+                const matchCard = e.target.closest('.match-card');
+                if (matchCard) {
+                    this.openMatchModal(matchCard.dataset.matchId);
+                }
+            },
+
+            openMatchModal(matchId) {
+                const match = this.findMatchById(matchId);
+                if (!match) return;
+
+                this.state.currentEditingMatchOriginal = JSON.parse(JSON.stringify(match));
+
+                const homeTeam = this.findTeamById(match.homeTeamId);
+                const awayTeam = this.findTeamById(match.awayTeamId);
+
+                this.elements.matchModal.dataset.currentMatchId = matchId;
+                const round = this.findRoundOfMatch(matchId);
+                document.getElementById('match-modal-title').innerText = round ? `Rodada ${round.roundNumber}` : 'Final';
+                document.getElementById('home-team-name-modal').innerText = homeTeam.name;
+                document.getElementById('away-team-name-modal').innerText = awayTeam.name;
+                document.getElementById('home-team-event-label').innerText = homeTeam.name;
+                document.getElementById('away-team-event-label').innerText = awayTeam.name;
+
+                this.elements.homeScoreInput.value = match.homeScore ?? '';
+                this.elements.awayScoreInput.value = match.awayScore ?? '';
+
+                this.populatePlayerSelect(this.elements.homePlayerSelect, homeTeam.players);
+                this.populatePlayerSelect(this.elements.awayPlayerSelect, awayTeam.players);
+                
+                this.renderMatchEvents(match);
+                this.elements.matchModal.style.display = 'flex';
+            },
+
+             closeMatchModal() {
+                 this.elements.matchModal.style.display = 'none';
+                 this.state.currentEditingMatchOriginal = null;
+            },
+
+            populatePlayerSelect(selectElement, players) { selectElement.innerHTML = players.map(p => `<option value="${p.name}">${p.name}</option>`).join(''); },
+            
+            addMatchEvent(teamType, eventType) {
+                const matchId = this.elements.matchModal.dataset.currentMatchId;
+                const match = this.findMatchById(matchId);
+                const round = this.findRoundOfMatch(matchId);
+                const roundNumber = round ? round.roundNumber : 'Final';
+
+                const playerSelect = teamType === 'home' ? this.elements.homePlayerSelect : this.elements.awayPlayerSelect;
+                const playerName = playerSelect.value;
+                const teamId = teamType === 'home' ? match.homeTeamId : match.awayTeamId;
+                if (!playerName) { alert('Selecione um jogador.'); return; }
+                match.events.push({
+                    id: `e_${Date.now()}`,
+                    teamId: teamId,
+                    player: playerName,
+                    type: eventType,
+                    round: roundNumber
+                });
+                this.renderMatchEvents(match);
+            },
+
+            removeMatchEvent(eventId) {
+                const matchId = this.elements.matchModal.dataset.currentMatchId;
+                const match = this.findMatchById(matchId);
+                match.events = match.events.filter(event => event.id !== eventId);
+                this.renderMatchEvents(match);
+            },
+
+            renderMatchEvents(match) {
+                const renderList = (listElement, teamId) => {
+                    listElement.innerHTML = match.events.filter(e => e.teamId === teamId).map(e => `
+                        <li>
+                            ${this.getEventIcon(e.type)} ${e.player}
+                            <button class="remove-event-btn" data-event-id="${e.id}" style="float:right; background:none; border:none; color: var(--danger-color); cursor: pointer;">&times;</button>
+                        </li>`).join('');
+                };
+                renderList(this.elements.homeEventsList, match.homeTeamId);
+                renderList(this.elements.awayEventsList, match.awayTeamId);
+            },
+
+            saveMatchResult() {
+                const matchId = this.elements.matchModal.dataset.currentMatchId;
+                const match = this.findMatchById(matchId);
+                const originalMatch = this.state.currentEditingMatchOriginal;
+                
+                const homeScore = parseInt(this.elements.homeScoreInput.value, 10);
+                const awayScore = parseInt(this.elements.awayScoreInput.value, 10);
+                if (isNaN(homeScore) || isNaN(awayScore)) { alert('Insira um placar válido.'); return; }
+
+                if (originalMatch.status === 'played') {
+                    this.updatePlayerStats(originalMatch, true);
+                }
+                
+                match.homeScore = homeScore; match.awayScore = awayScore; match.status = 'played';
+                
+                this.updatePlayerStats(match, false);
+
+                this.saveState(); this.render(); this.closeMatchModal();
+            },
+
+            updatePlayerStats(match, reverse = false) {
+                const factor = reverse ? -1 : 1;
+                match.events.forEach(event => {
+                    const team = this.findTeamById(event.teamId);
+                    if (!team) return;
+                    const player = team.players.find(p => p.name === event.player);
+                    if (!player) return;
+                    switch (event.type) {
+                        case 'goal': player.goals += factor; break;
+                        case 'yellow': player.yellowCards += factor; break;
+                        case 'red': player.redCards += factor; break;
+                    }
+                });
+            },
+
+            openManagementModal() {
+                this.renderManagementUI();
+                this.elements.managementModal.style.display = 'flex';
+            },
+
+            closeManagementModal() {
+                this.elements.managementModal.style.display = 'none';
+            },
+            
+            handleTabClick(e) {
+                if (!e.target.classList.contains('tab-button')) return;
+                const tabId = e.target.dataset.tab;
+                document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+                e.target.classList.add('active');
+                document.getElementById(`tab-${tabId}`).classList.add('active');
+            },
+
+            renderManagementUI() {
+                this.renderTeamManagement();
+                this.renderRoundManagement();
+                this.updateGenerateFinalsButton();
+            },
+
+            renderTeamManagement() {
+                const container = document.getElementById('tab-teams');
+                container.innerHTML = this.state.teams.map(team => `
+                    <div class="round-management-item">
+                        <h4>${team.name}</h4>
+                        <ul class="player-list">
+                            ${team.players.map(player => `<li>${player.name} <button class="btn btn-danger btn-sm" data-action="remove-player" data-team-id="${team.id}" data-player-name="${player.name}">&times;</button></li>`).join('')}
+                        </ul>
+                        <div class="inline-form">
+                            <input type="text" id="add-player-input-${team.id}" placeholder="Nome do jogador">
+                            <button class="btn btn-success btn-sm" data-action="add-player" data-team-id="${team.id}">Adicionar</button>
+                        </div>
+                    </div>
+                `).join('');
+            },
+
+            renderRoundManagement() {
+                const container = document.getElementById('tab-rounds');
+                container.innerHTML = this.state.schedule.map(round => {
+                    const scheduledTeamIds = round.matches.flatMap(m => [m.homeTeamId, m.awayTeamId]);
+                    const availableTeams = this.state.teams.filter(t => !scheduledTeamIds.includes(t.id));
+
+                    return `
+                    <div class="round-management-item">
+                        <h4>Rodada ${round.roundNumber}</h4>
+                        <ul class="match-list">
+                          ${round.matches.map(match => `<li>${this.findTeamById(match.homeTeamId).name} vs ${this.findTeamById(match.awayTeamId).name} <button class="btn btn-danger btn-sm" data-action="remove-match" data-round-number="${round.roundNumber}" data-match-id="${match.id}">&times;</button></li>`).join('')}
+                        </ul>
+                        ${availableTeams.length >= 2 ? `
+                        <div class="inline-form" data-round-number="${round.roundNumber}">
+                            <select data-type="home">${availableTeams.map(t => `<option value="${t.id}">${t.name}</option>`).join('')}</select>
+                            <select data-type="away">${availableTeams.map(t => `<option value="${t.id}">${t.name}</option>`).join('')}</select>
+                            <button class="btn btn-success btn-sm" data-action="add-match">Adicionar Partida</button>
+                        </div>` : ''}
+                    </div>
+                    `
+                }).join('');
+            },
+            
+            handleTeamManagementActions(e) {
+                const action = e.target.dataset.action;
+                const teamId = e.target.dataset.teamId;
+                if (!action || !teamId) return;
+
+                if (action === 'add-player') {
+                    const input = document.getElementById(`add-player-input-${teamId}`);
+                    const playerName = input.value.trim();
+                    if (playerName) {
+                        const team = this.findTeamById(teamId);
+                        team.players.push({ name: playerName, goals: 0, yellowCards: 0, redCards: 0 });
+                        input.value = '';
+                    }
+                } else if (action === 'remove-player') {
+                    const playerName = e.target.dataset.playerName;
+                    const team = this.findTeamById(teamId);
+                    team.players = team.players.filter(p => p.name !== playerName);
+                }
+                
+                this.saveState();
+                this.renderTeamManagement();
+            },
+
+            handleRoundManagementActions(e) {
+                const action = e.target.dataset.action;
+                if (!action) return;
+
+                if (action === 'add-match') {
+                    const form = e.target.closest('.inline-form');
+                    const roundNumber = parseInt(form.dataset.roundNumber, 10);
+                    const homeTeamId = form.querySelector('select[data-type="home"]').value;
+                    const awayTeamId = form.querySelector('select[data-type="away"]').value;
+                    if (homeTeamId === awayTeamId) {
+                        alert('Um time não pode jogar contra si mesmo.'); return;
+                    }
+                    const round = this.state.schedule.find(r => r.roundNumber === roundNumber);
+                    round.matches.push({
+                        id: `m_${roundNumber}_${round.matches.length}`, homeTeamId, awayTeamId,
+                        homeScore: null, awayScore: null, status: 'pending', events: []
+                    });
+                } else if (action === 'remove-match') {
+                    const roundNumber = parseInt(e.target.dataset.roundNumber, 10);
+                    const matchId = e.target.dataset.matchId;
+                    const round = this.state.schedule.find(r => r.roundNumber === roundNumber);
+                    round.matches = round.matches.filter(m => m.id !== matchId);
+                }
+
+                this.saveState();
+                this.renderRoundManagement();
+                this.renderSchedule();
+            },
+
+            generateFinals() {
+                const allGroupMatchesPlayed = this.state.schedule.every(r => r.matches.every(m => m.status === 'played'));
+                if (!allGroupMatchesPlayed) {
+                    alert('Todos os jogos da fase de grupos devem ser concluídos para gerar as finais.'); return;
+                }
+                if (this.state.finals.gold) {
+                    alert('As finais já foram geradas.'); return;
+                }
+                
+                const standings = this.calculateStandings();
+                if (standings.length < 4) {
+                    alert('São necessários pelo menos 4 times na classificação para gerar as finais.'); return;
+                }
+
+                this.state.finals.gold = { id: 'final_gold', homeTeamId: standings[0].id, awayTeamId: standings[1].id, homeScore: null, awayScore: null, status: 'pending', events: [] };
+                this.state.finals.silver = { id: 'final_silver', homeTeamId: standings[2].id, awayTeamId: standings[3].id, homeScore: null, awayScore: null, status: 'pending', events: [] };
+                
+                alert('Finais geradas com sucesso!');
+                this.saveState();
+                this.render();
+                this.closeManagementModal();
+            },
+            
+            updateGenerateFinalsButton() {
+                const allGroupMatchesPlayed = this.state.schedule.every(r => r.matches.every(m => m.status === 'played'));
+                this.elements.generateFinalsBtn.disabled = !allGroupMatchesPlayed || this.state.finals.gold;
+            },
+
+            findTeamById(id) { return this.state.teams.find(t => t.id === id); },
+            findMatchById(id) {
+                for (const round of this.state.schedule) {
+                    const match = round.matches.find(m => m.id === id);
+                    if (match) return match;
+                }
+                if (this.state.finals.gold && this.state.finals.gold.id === id) return this.state.finals.gold;
+                if (this.state.finals.silver && this.state.finals.silver.id === id) return this.state.finals.silver;
+                return null;
+            },
+            findRoundOfMatch(matchId) { return this.state.schedule.find(round => round.matches.some(m => m.id === matchId)); },
+            getEventIcon(type) {
+                if (type === 'goal') return '⚽';
+                if (type === 'yellow') return '<span class="icon-yellow-card">■</span>';
+                if (type === 'red') return '<span class="icon-red-card">■</span>';
+                return '';
+            }
+        };
+
+        App.init();
+    });
+    </script>
+
+</body>
+</html>
+
