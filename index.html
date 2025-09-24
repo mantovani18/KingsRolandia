@@ -1,6 +1,12 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
+    <!-- Firebase SDK: app deve vir primeiro -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <!-- Firebase Auth SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <!-- Firebase Database SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gerenciador de Campeonato KINGS RL</title>
@@ -523,14 +529,38 @@
         }
 
         @media (max-width: 768px) {
-            header h1 { font-size: 1.5rem; }
-            .main-logo { max-width: 60px; }
+            header h1 { font-size: 1.1rem; }
+            .main-logo { max-width: 40px; }
+            .container { padding: 0 2px; }
+            .main-content { grid-template-columns: 1fr; gap: 8px; }
+            .table-container, .stats-list, .content-section { border-radius: 0; box-shadow: none; }
+            .team-logo { width: 18px; height: 18px; }
             .events-section { grid-template-columns: 1fr; }
-            .modal-content { width: 95%; max-width: 95%; }
+            .modal-content { width: 99%; max-width: 99%; padding: 4px; }
+            .stats-list li { font-size: 0.95rem; padding: 8px 2px; }
+            .suspenso-jogador { font-size: 1rem; }
+            .suspenso-motivo { font-size: 0.85rem; }
         }
     </style>
 </head>
 <body>
+<!-- Modal de Login -->
+<div id="loginModal" style="position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.7);display:flex;align-items:center;justify-content:center;z-index:9999;">
+    <div style="background:#fff;padding:32px 24px;border-radius:12px;box-shadow:0 2px 16px rgba(0,0,0,0.15);min-width:280px;text-align:center;">
+        <h2>Entrar</h2>
+        <label for="userType">Selecione o tipo de usuário:</label><br>
+        <select id="userType" style="margin:12px 0 24px 0;padding:8px 12px;font-size:1rem;">
+            <option value="admin">Administrador</option>
+            <option value="jogador">Jogador</option>
+        </select><br>
+        <div id="admin-login-fields" style="display:none;">
+            <input type="text" id="adminEmail" placeholder="Email (ex: admin1@kingsrl.com)" style="margin-bottom:8px;padding:8px;width:90%;"><br>
+            <input type="password" id="adminPassword" placeholder="Senha" style="margin-bottom:16px;padding:8px;width:90%;"><br>
+        </div>
+        <button onclick="loginUser()" style="padding:8px 24px;font-size:1rem;border-radius:6px;background:#1e90ff;color:#fff;border:none;cursor:pointer;">Entrar</button>
+        <div id="loginError" style="color:#e76f51;margin-top:12px;font-weight:600;"></div>
+    </div>
+</div>
 
     <!-- Cabeçalho -->
     <header>
@@ -706,6 +736,109 @@ LOS GALÁCTICOS: Atleta1, Atleta2, Atleta3"></textarea>
 
 
     <script>
+// --- CONFIGURAÇÃO DO FIREBASE ---
+const firebaseConfig = {
+    apiKey: "AIzaSyDOzx-BHH6V-Qyf4rtBwmrPNsEg63SRxAM",
+    authDomain: "kingsrl.firebaseapp.com",
+    databaseURL: "https://kingsrl-default-rtdb.firebaseio.com",
+    projectId: "kingsrl",
+    storageBucket: "kingsrl.appspot.com",
+    messagingSenderId: "1063911022101",
+    appId: "1:1063911022101:web:33f0dc02b5f38a1a19781c",
+    measurementId: "G-YFGBCG8GYX"
+};
+
+let db = null;
+let auth = null;
+try {
+    firebase.initializeApp(firebaseConfig);
+    db = firebase.database();
+    auth = firebase.auth();
+} catch (e) {
+    document.addEventListener('DOMContentLoaded', function() {
+        document.getElementById('loginError').textContent = 'Erro ao inicializar Firebase: ' + (e.message || e);
+    });
+    console.error('Erro ao inicializar Firebase:', e);
+}
+
+document.getElementById('userType').addEventListener('change', function() {
+    document.getElementById('admin-login-fields').style.display = this.value === 'admin' ? 'block' : 'none';
+});
+// Controle de tipo de usuário
+let userType = null;
+
+function loginUser() {
+    userType = document.getElementById('userType').value;
+    if (userType === 'admin') {
+        let email = document.getElementById('adminEmail').value.trim();
+        // Se o usuário digitar só o nome, completa com domínio padrão
+        if (email && !email.includes('@')) {
+            email = email + '@kingsrl.com';
+        }
+        const password = document.getElementById('adminPassword').value;
+        // Verifica se as credenciais do Firebase estão preenchidas
+        if (firebaseConfig.apiKey === 'SUA_API_KEY') {
+            document.getElementById('loginError').textContent = 'Preencha as credenciais do Firebase no código!';
+            return;
+        }
+        if (!auth) {
+            document.getElementById('loginError').textContent = 'Firebase não inicializado.';
+            return;
+        }
+        auth.signInWithEmailAndPassword(email, password)
+            .then(() => {
+                document.getElementById('loginModal').style.display = 'none';
+                document.getElementById('loginError').textContent = '';
+                console.log('Login admin realizado com sucesso!');
+            })
+            .catch(error => {
+                console.error('Erro de login:', error);
+                if (error.code === 'auth/user-not-found') {
+                    // Cria o usuário automaticamente
+                    firebase.auth().createUserWithEmailAndPassword(email, password)
+                        .then(() => {
+                            document.getElementById('loginModal').style.display = 'none';
+                            document.getElementById('loginError').textContent = '';
+                            console.log('Usuário admin criado e logado!');
+                        })
+                        .catch(err => {
+                            document.getElementById('loginError').textContent = 'Erro ao criar usuário admin: ' + (err.message || err.code);
+                            console.error('Erro ao criar usuário admin:', err);
+                        });
+                } else {
+                    let msg = 'Login ou senha inválidos.';
+                    if (error.message) msg += ' (' + error.message + ')';
+                    document.getElementById('loginError').textContent = msg;
+                }
+            });
+    } else {
+        document.getElementById('loginModal').style.display = 'none';
+        disableAdminFeatures();
+    }
+}
+
+window.onload = function() {
+    document.getElementById('loginModal').style.display = 'flex';
+    document.getElementById('admin-login-fields').style.display = 'none';
+};
+
+function disableAdminFeatures() {
+    // Desabilita todos os botões e inputs de edição
+    const editElements = document.querySelectorAll('button, input, select, textarea');
+    editElements.forEach(el => {
+        // Permite apenas visualização, exceto botões do login
+        if (!el.closest('#loginModal')) {
+            el.disabled = true;
+            el.style.opacity = '0.6';
+            el.style.cursor = 'not-allowed';
+        }
+    });
+    // Adiciona aviso
+    const aviso = document.createElement('div');
+    aviso.textContent = 'Modo jogador: apenas visualização.';
+    aviso.style = 'position:fixed;bottom:16px;right:16px;background:#ffc;padding:8px 16px;border-radius:8px;color:#333;z-index:9998;font-weight:600;box-shadow:0 2px 8px rgba(0,0,0,0.08)';
+    document.body.appendChild(aviso);
+}
     document.addEventListener('DOMContentLoaded', () => {
         const App = {
             state: {
@@ -763,14 +896,38 @@ LOS GALÁCTICOS: Atleta1, Atleta2, Atleta3"></textarea>
             },
 
             loadState() {
-                const savedState = localStorage.getItem('kingsRLChampionship');
-                if (savedState) {
-                    this.state = JSON.parse(savedState);
+                // Se for jogador, escuta atualizações do Firebase
+                if (userType === 'jogador') {
+                    db.ref('kingsRLChampionship').on('value', snapshot => {
+                        const data = snapshot.val();
+                        if (data) {
+                            this.state = data;
+                            this.render();
+                        }
+                    });
+                } else {
+                    // Admin: carrega do localStorage e do Firebase
+                    const savedState = localStorage.getItem('kingsRLChampionship');
+                    if (savedState) {
+                        this.state = JSON.parse(savedState);
+                    }
+                    // Tenta carregar do Firebase se existir
+                    db.ref('kingsRLChampionship').once('value').then(snapshot => {
+                        const data = snapshot.val();
+                        if (data) {
+                            this.state = data;
+                            this.render();
+                        }
+                    });
                 }
             },
 
             saveState() {
                 localStorage.setItem('kingsRLChampionship', JSON.stringify(this.state));
+                // Se for admin, salva no Firebase
+                if (userType === 'admin') {
+                    db.ref('kingsRLChampionship').set(this.state);
+                }
             },
 
             attachEventListeners() {
@@ -887,11 +1044,22 @@ LOS GALÁCTICOS: Atleta1, Atleta2, Atleta3"></textarea>
                 // Verifica suspensos para a rodada atual
                 const suspended = [];
                 Object.entries(playerCards).forEach(([player, cards]) => {
-                    // Vermelho: suspenso na rodada seguinte
+                    // Vermelho: suspenso na rodada seguinte, exibe aviso
                     const redCard = cards.find(card => card.type === 'red');
-                    if (redCard && currentRound === (parseInt(redCard.round) + 1)) {
-                        suspended.push({ player, reason: 'Cartão vermelho' });
-                        return;
+                    if (redCard) {
+                        if (currentRound === (parseInt(redCard.round) + 1)) {
+                            suspended.push({ player, reason: 'Cartão vermelho - Jogador está suspenso (Aguarde a próxima rodada.)' });
+                            return;
+                        }
+                        // Se já cumpriu suspensão, não exibe mais
+                        if (currentRound > (parseInt(redCard.round) + 1)) {
+                            return;
+                        }
+                        // Se está na rodada do cartão, mostra como expulso
+                        if (currentRound === parseInt(redCard.round)) {
+                            suspended.push({ player, reason: 'Cartão vermelho - Expulso nesta rodada.' });
+                            return;
+                        }
                     }
                     // 3 amarelos em 3 rodadas seguidas: suspenso na rodada seguinte
                     let yellowRounds = cards.filter(card => card.type === 'yellow').map(card => parseInt(card.round));
@@ -904,9 +1072,14 @@ LOS GALÁCTICOS: Atleta1, Atleta2, Atleta3"></textarea>
                     }
                 });
                 if (suspended.length === 0) {
-                    suspendedList.innerHTML = '<li>Nenhum jogador suspenso nesta rodada.</li>';
+                    suspendedList.innerHTML = '<li style="text-align:center;color:var(--grey-text);font-size:1rem;">Nenhum jogador suspenso nesta rodada.</li>';
                 } else {
-                    suspendedList.innerHTML = suspended.map(s => `<li><strong>${s.player}</strong>: ${s.reason}</li>`).join('');
+                    suspendedList.innerHTML = suspended.map(s => `
+                        <li>
+                            <span class="suspenso-jogador"><span class="suspenso-icon">🚫</span><span style="background:var(--danger-color);color:#fff;padding:2px 8px;border-radius:6px;">${s.player}</span></span>
+                            <span class="suspenso-motivo">${s.reason}</span>
+                        </li>
+                    `).join('');
                 }
             },
             // Retorna a rodada atual (última rodada com status 'pending' ou 'played')
@@ -1097,7 +1270,57 @@ LOS GALÁCTICOS: Atleta1, Atleta2, Atleta3"></textarea>
                  this.state.currentEditingMatchOriginal = null;
             },
 
-            populatePlayerSelect(selectElement, players) { selectElement.innerHTML = players.map(p => `<option value="${p.name}">${p.name}</option>`).join(''); },
+            populatePlayerSelect(selectElement, players) {
+                // Oculta jogadores suspensos na rodada atual
+                const suspendedPlayers = this.getSuspendedPlayersNames();
+                selectElement.innerHTML = players
+                    .filter(p => !suspendedPlayers.includes(p.name))
+                    .map(p => `<option value="${p.name}">${p.name}</option>`)
+                    .join('');
+            },
+            // Retorna array de nomes dos jogadores suspensos na rodada atual
+            getSuspendedPlayersNames() {
+                // Lógica igual à renderSuspendedPlayers, mas retorna só nomes
+                const currentRound = this.getCurrentRoundNumber();
+                const allEvents = [];
+                const allMatches = [
+                    ...this.state.schedule.flatMap(r => r.matches),
+                    this.state.finals.gold,
+                    this.state.finals.silver
+                ].filter(Boolean);
+                allMatches.forEach(match => {
+                    match.events.forEach(event => {
+                        allEvents.push({
+                            player: event.player,
+                            teamId: event.teamId,
+                            type: event.type,
+                            round: event.round
+                        });
+                    });
+                });
+                const playerCards = {};
+                allEvents.forEach(ev => {
+                    if (!playerCards[ev.player]) playerCards[ev.player] = [];
+                    if (ev.type === 'yellow' || ev.type === 'red') playerCards[ev.player].push({ type: ev.type, round: ev.round });
+                });
+                const suspended = [];
+                Object.entries(playerCards).forEach(([player, cards]) => {
+                    const redCard = cards.find(card => card.type === 'red');
+                    if (redCard && currentRound === (parseInt(redCard.round) + 1)) {
+                        suspended.push(player);
+                        return;
+                    }
+                    let yellowRounds = cards.filter(card => card.type === 'yellow').map(card => parseInt(card.round));
+                    yellowRounds.sort((a, b) => a - b);
+                    for (let i = 0; i < yellowRounds.length - 2; i++) {
+                        if (yellowRounds[i + 2] - yellowRounds[i] === 2 && currentRound === yellowRounds[i + 2] + 1) {
+                            suspended.push(player);
+                            return;
+                        }
+                    }
+                });
+                return suspended;
+            },
             
             addMatchEvent(teamType, eventType) {
                 const matchId = this.elements.matchModal.dataset.currentMatchId;
@@ -1339,5 +1562,90 @@ LOS GALÁCTICOS: Atleta1, Atleta2, Atleta3"></textarea>
     });
     </script>
 
-</body>
-</html>
+    <!-- Script do java.js incorporado -->
+    <script>
+// Função para calcular suspensos por rodada
+function getSuspendedPlayers(matches, currentRound = null) {
+    const cardHistory = {};
+    matches.forEach(match => {
+        if (!match.events) return;
+        match.events.forEach(event => {
+            if (!cardHistory[event.player]) {
+                cardHistory[event.player] = [];
+            }
+            if (event.type === 'yellow' || event.type === 'red') {
+                cardHistory[event.player].push({
+                    round: match.round,
+                    type: event.type
+                });
+            }
+        });
+    });
+    const suspended = {};
+    Object.entries(cardHistory).forEach(([player, cards]) => {
+        const redCard = cards.find(card => card.type === 'red');
+        if (redCard) {
+            if (currentRound === null || currentRound === redCard.round + 1) {
+                suspended[player] = 'Cartão vermelho';
+            }
+            return;
+        }
+        let yellowRounds = cards.filter(card => card.type === 'yellow').map(card => card.round);
+        yellowRounds.sort((a, b) => a - b);
+        for (let i = 0; i < yellowRounds.length - 2; i++) {
+            if (yellowRounds[i + 2] - yellowRounds[i] === 2) {
+                if (currentRound === null || currentRound === yellowRounds[i + 2] + 1) {
+                    suspended[player] = '3 amarelos em 3 jogos seguidos';
+                }
+                return;
+            }
+        }
+    });
+    return suspended;
+}
+
+
+function displayMatchesWithSuspension(matches, teams, currentRound) {
+    const container = document.getElementById('results-container');
+    if (!container) return;
+    const getTeamInfo = (id) => teams.find(t => t.id === id);
+    const suspended = getSuspendedPlayers(matches, currentRound);
+    container.innerHTML = matches.map(match => {
+        const homeTeam = getTeamInfo(match.homeTeam);
+        const awayTeam = getTeamInfo(match.awayTeam);
+        let homePlayers = (match.events || []).filter(e => e.team === homeTeam.id && !suspended[e.player]);
+        let awayPlayers = (match.events || []).filter(e => e.team === awayTeam.id && !suspended[e.player]);
+        return `
+            <div class="match-card">
+                <div class="match-round">Rodada ${match.round}</div>
+                <div class="match-body">
+                    <div class="team">
+                        <span class="team-name">${homeTeam.name}</span>
+                        <img src="${homeTeam.logo}" alt="${homeTeam.name}" class="team-logo">
+                    </div>
+                    <div class="match-score">
+                        <span>${match.homeScore} x ${match.awayScore}</span>
+                    </div>
+                    <div class="team away">
+                        <img src="${awayTeam.logo}" alt="${awayTeam.name}" class="team-logo">
+                        <span class="team-name">${awayTeam.name}</span>
+                    </div>
+                </div>
+                <div class="match-status">
+                    <span>Jogadores disponíveis (casa): ${homePlayers.map(e => e.player).join(', ') || 'Todos suspensos'}</span><br>
+                    <span>Jogadores disponíveis (fora): ${awayPlayers.map(e => e.player).join(', ') || 'Todos suspensos'}</span>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+// Substitui chamada padrão para usar lógica de suspensão
+document.addEventListener('DOMContentLoaded', () => {
+    const standings = createStandings(teamsData, matchesData);
+    displayStandings(standings);
+    // Rodada atual: exemplo, 2 (pode ser dinâmico)
+    const currentRound = 2;
+    displayMatchesWithSuspension(matchesData, teamsData, currentRound);
+    displaySuspendedPlayers(matchesData, currentRound);
+});
