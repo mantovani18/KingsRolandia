@@ -536,7 +536,7 @@
     <header>
         <div class="container header-content">
             <div class="header-title">
-                <img src="logo.jpg" alt="Logo KINGS RL" class="main-logo">
+                <img src="Logo.jpg" alt="Logo KINGS RL" class="main-logo">
                 <h1>KINGS RL</h1>
             </div>
             <div class="header-actions">
@@ -594,6 +594,10 @@
                     <section class="content-section" id="cards-section">
                         <h2>Cartões Amarelos</h2>
                         <ul id="yellow-cards-list" class="stats-list"></ul>
+                    </section>
+                    <section class="content-section" id="suspended-section">
+                        <h2>Suspensos</h2>
+                        <ul id="suspended-players-list" class="stats-list"></ul>
                     </section>
                 </aside>
             </div>
@@ -850,6 +854,66 @@ LOS GALÁCTICOS: Atleta1, Atleta2, Atleta3"></textarea>
                 this.renderFinals();
                 this.renderTopScorers();
                 this.renderYellowCards();
+                this.renderSuspendedPlayers();
+            },
+            // Renderiza lista de suspensos na barra lateral
+            renderSuspendedPlayers() {
+                const suspendedList = document.getElementById('suspended-players-list');
+                if (!suspendedList) return;
+                // Lógica: suspenso na rodada seguinte ao vermelho ou 3 amarelos em 3 rodadas seguidas
+                const currentRound = this.getCurrentRoundNumber();
+                const allEvents = [];
+                const allMatches = [
+                    ...this.state.schedule.flatMap(r => r.matches),
+                    this.state.finals.gold,
+                    this.state.finals.silver
+                ].filter(Boolean);
+                allMatches.forEach(match => {
+                    match.events.forEach(event => {
+                        allEvents.push({
+                            player: event.player,
+                            teamId: event.teamId,
+                            type: event.type,
+                            round: event.round
+                        });
+                    });
+                });
+                // Agrupa eventos por jogador
+                const playerCards = {};
+                allEvents.forEach(ev => {
+                    if (!playerCards[ev.player]) playerCards[ev.player] = [];
+                    if (ev.type === 'yellow' || ev.type === 'red') playerCards[ev.player].push({ type: ev.type, round: ev.round });
+                });
+                // Verifica suspensos para a rodada atual
+                const suspended = [];
+                Object.entries(playerCards).forEach(([player, cards]) => {
+                    // Vermelho: suspenso na rodada seguinte
+                    const redCard = cards.find(card => card.type === 'red');
+                    if (redCard && currentRound === (parseInt(redCard.round) + 1)) {
+                        suspended.push({ player, reason: 'Cartão vermelho' });
+                        return;
+                    }
+                    // 3 amarelos em 3 rodadas seguidas: suspenso na rodada seguinte
+                    let yellowRounds = cards.filter(card => card.type === 'yellow').map(card => parseInt(card.round));
+                    yellowRounds.sort((a, b) => a - b);
+                    for (let i = 0; i < yellowRounds.length - 2; i++) {
+                        if (yellowRounds[i + 2] - yellowRounds[i] === 2 && currentRound === yellowRounds[i + 2] + 1) {
+                            suspended.push({ player, reason: '3 amarelos em 3 jogos seguidos' });
+                            return;
+                        }
+                    }
+                });
+                if (suspended.length === 0) {
+                    suspendedList.innerHTML = '<li>Nenhum jogador suspenso nesta rodada.</li>';
+                } else {
+                    suspendedList.innerHTML = suspended.map(s => `<li><strong>${s.player}</strong>: ${s.reason}</li>`).join('');
+                }
+            },
+            // Retorna a rodada atual (última rodada com status 'pending' ou 'played')
+            getCurrentRoundNumber() {
+                const playedRounds = this.state.schedule.filter(r => r.matches.some(m => m.status === 'pending' || m.status === 'played'));
+                if (playedRounds.length === 0) return 1;
+                return playedRounds[playedRounds.length - 1].roundNumber;
             },
             
             renderStandings() {
@@ -1277,4 +1341,3 @@ LOS GALÁCTICOS: Atleta1, Atleta2, Atleta3"></textarea>
 
 </body>
 </html>
-
